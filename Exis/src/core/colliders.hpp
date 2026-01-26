@@ -71,21 +71,21 @@ struct CollisionManager{
     Arena frameArena;
 };
 
-CORE_API void importCollisionModule(Ecs* ecs);
+CORE_API void importCollisionModule();
 CORE_API void initCollisionManager(Arena* arena);
 CORE_API void collisionStartFrame();
 CORE_API void collisionEndFrame();
 CORE_API CollisionEventArray* getCollisionEvents();
 CORE_API TriggerEventArray* getTriggerEvents();
 CORE_API TriggerEventArray* getTriggerEnterEvents();
-CORE_API void updateCollisions(Ecs* ecs);
-CORE_API void systemResolvePhysicsCollisions(Ecs* ecs);
+CORE_API void updateCollisions();
+CORE_API void systemResolvePhysicsCollisions();
 
-CORE_API Entity getNearestEntity(Ecs* ecs, Entity e, int cellRange);
-CORE_API EntityColliderArray* getNearestEntities(Ecs* ecs, Entity entity, float radius);
+CORE_API Entity getNearestEntity(Entity e, int cellRange);
+CORE_API EntityColliderArray* getNearestEntities(Entity entity, float radius);
 
-CORE_API void systemUpdateColliderPosition(Ecs* ecs);
-CORE_API void systemUpdateTransformChildEntities(Ecs* ecs);
-CORE_API void systemRenderColliders(Ecs* ecs);
+CORE_API void systemUpdateColliderPosition();
+CORE_API void systemUpdateTransformChildEntities();
+CORE_API void systemRenderColliders();
 CORE_API void setGridCenter(float x, float y);
 CORE_API void renderGrid();

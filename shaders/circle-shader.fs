@@ -22,7 +22,7 @@ void main()
         discard;
     }
 
-    //FragColor = texture(sprite[TexIndex], TexCoord) * OutColor;
+    FragColor = OutColor;
     //if (FragColor.a <= 0.1) {
     //    //NOTE: was it necessary for the ysorting???
     //    discard; // Discards the fragment if alpha is less than or equal to 0.9

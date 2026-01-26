@@ -2,6 +2,8 @@
 #include "tracelog.hpp"
 #include "profiler.hpp"
 
+Ecs* ecs;
+
 ECS_DECLARE_COMPONENT_EXTERN(TransformComponent);
 ECS_DECLARE_COMPONENT_EXTERN(DirectionComponent);
 ECS_DECLARE_COMPONENT_EXTERN(VelocityComponent);
@@ -50,20 +52,20 @@ Components initComponents(Arena* arena, size_t size){
     return components;
 }
 
-void importBaseModule(Ecs* ecs){
-    registerComponent(ecs, TransformComponent);
-    registerComponent(ecs, SpriteComponent);
-    registerComponent(ecs, DirectionComponent);
-    registerComponent(ecs, VelocityComponent);
-    registerComponent(ecs, PersistentTag);
-    registerComponent(ecs, AnimationComponent);
-    registerComponent(ecs, Parent);
-    registerComponent(ecs, Child);
+void importBaseModule(){
+    registerComponent(TransformComponent);
+    registerComponent(SpriteComponent);
+    registerComponent(DirectionComponent);
+    registerComponent(VelocityComponent);
+    registerComponent(PersistentTag);
+    registerComponent(AnimationComponent);
+    registerComponent(Parent);
+    registerComponent(Child);
 }
 
 Ecs* initEcs(Arena* arena){
     //Ecs* ecs = new Ecs();
-    Ecs* ecs = arenaAllocStructZero(arena, Ecs);
+    ecs = arenaAllocStructZero(arena, Ecs);
     Arena ecsArena = initArena(MB(500));
     ecs->arena = ecsArena;
     Arena ecsFrameArena = initArena(MB(100));
@@ -82,7 +84,7 @@ Ecs* initEcs(Arena* arena){
     return ecs;
 }
 
-int getIdForString(Ecs* ecs, const char *str) {
+int getIdForString(const char *str) {
     // Check if string already exists
     for (size_t i = 1; i < ecs->componentId; i++) {
         if (strcmp(ecs->names[i], str) == 0) {
@@ -92,9 +94,9 @@ int getIdForString(Ecs* ecs, const char *str) {
     return 0;
 }
 
-size_t registerComponentImpl(Ecs* ecs, const char* name, const size_t size){
+size_t registerComponentImpl(const char* name, const size_t size){
 
-    size_t componentType = getIdForString(ecs, name);
+    size_t componentType = getIdForString(name);
     if(!componentType){
         componentType = ecs->componentId++;
         strncpy(ecs->names[componentType], name, 500 - 1);
@@ -119,7 +121,7 @@ size_t registerComponentImpl(Ecs* ecs, const char* name, const size_t size){
     return componentType;
 }
 
-void pushComponentImpl(Ecs* ecs, const Entity id, const size_t type, const void* data){
+void pushComponentImpl(const Entity id, const size_t type, const void* data){
     size_t componentType = type; 
     if(!componentType){
         LOGERROR("No component registered with name %u", type);
@@ -131,21 +133,21 @@ void pushComponentImpl(Ecs* ecs, const Entity id, const size_t type, const void*
     ecs->denseToSparse[componentType].entity[ecs->denseToSparse[componentType].entityCount++] = id;
     //If i am adding the parent component i also update the childs of the parents
     if(type == ECS_TYPE(Parent)){
-        Parent* p = getComponent(ecs, id, Parent);
+        Parent* p = getComponent(id, Parent);
         if(p){
-            if(hasComponent(ecs, p->entity, Child)){
-                Child* child = getComponent(ecs, p->entity, Child);
+            if(hasComponent(p->entity, Child)){
+                Child* child = getComponent(p->entity, Child);
                 child->entity[child->count++] = id;
             }else{
                 Child child = {};
                 child.entity[child.count++] = id;
-                pushComponent(ecs, p->entity, Child, &child);
+                pushComponent(p->entity, Child, &child);
             }
         }
     }
 };
 
-Entity createEntity(Ecs* ecs){
+Entity createEntity(){
     Entity id;
     if(ecs->removedEntitiesCount > 0){
         size_t entityIdx = ecs->removedEntitiesCount - 1;
@@ -161,7 +163,7 @@ Entity createEntity(Ecs* ecs){
 }
 
 
-bool hasComponentImpl(Ecs* ecs, const Entity entity, const size_t type){
+bool hasComponentImpl(const Entity entity, const size_t type){
     uint32_t componentType = type;
 
     //TODO: make assertion
@@ -177,7 +179,7 @@ bool hasComponentImpl(Ecs* ecs, const Entity entity, const size_t type){
     }
 }
 
-EntityArray viewImpl(Ecs* ecs, uint32_t count, uint32_t* types){
+EntityArray viewImpl(uint32_t count, uint32_t* types){
     size_t smallestComponents = MAX_COMPONENTS;
     size_t componentTypeToUse = 0;
     //size_t componentTypes[MAX_COMPONENT_TYPE];
@@ -200,7 +202,7 @@ EntityArray viewImpl(Ecs* ecs, uint32_t count, uint32_t* types){
             size_t componentType = types[j];
             if(componentType == componentTypeToUse) continue;
             //if(ecs->sparse[componentType].entityToComponent[entity] == NULL_ENTITY){
-            if(!hasComponentImpl(ecs, entity, componentType)){
+            if(!hasComponentImpl(entity, componentType)){
                 hasAll = false;
                 break;
             }
@@ -212,8 +214,8 @@ EntityArray viewImpl(Ecs* ecs, uint32_t count, uint32_t* types){
     return entities;
 }
 
-void* getComponentImpl(Ecs* ecs, Entity entity, const size_t type){
-    if(hasComponentImpl(ecs, entity, type)){
+void* getComponentImpl(Entity entity, const size_t type){
+    if(hasComponentImpl(entity, type)){
         uint32_t componentType = type;
         //NOTE: probably it's usless because already checked if it has the component name
         if(!componentType){
@@ -227,8 +229,8 @@ void* getComponentImpl(Ecs* ecs, Entity entity, const size_t type){
 }
 
 
-void removeComponentImpl(Ecs* ecs, Entity entity, const size_t type){
-    if(hasComponentImpl(ecs, entity, type)){
+void removeComponentImpl(Entity entity, const size_t type){
+    if(hasComponentImpl(entity, type)){
         uint32_t componentType = type;
         uint32_t denseIndex = ecs->sparse[componentType].entityToComponent[entity];
         if(ecs->sparse[componentType].components.count == 0){
@@ -256,29 +258,29 @@ void removeComponentImpl(Ecs* ecs, Entity entity, const size_t type){
 }
 
 
-void removeEntity(Ecs* ecs, Entity entity){
+void removeEntity(Entity entity){
     for(size_t i = 1; i < ecs->componentId; i++){
-        removeComponentImpl(ecs, entity, i);
+        removeComponentImpl(entity, i);
     }
     ecs->removedEntities[ecs->removedEntitiesCount++] = entity;
     ecs->entitiesCount--;
 }
 
-void ecsEndFrame(Ecs* ecs){
+void ecsEndFrame(){
     clearArena(&ecs->frameArena);
 }
 
 
-void clearEcs(Ecs* ecs){
+void clearEcs(){
     for(size_t entity = 0; entity < ecs->entities; entity++){
-        removeEntity(ecs, entity);
+        removeEntity(entity);
     }
     ecs->entities = 0;
     ecs->entitiesCount = 0;
     ecs->removedEntitiesCount = 0;
 }
 
-void destroyEcs(Ecs* ecs){
+void destroyEcs(){
     clearArena(&ecs->arena);
     destroyArena(&ecs->arena);
 }

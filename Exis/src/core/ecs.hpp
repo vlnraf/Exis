@@ -20,25 +20,25 @@
 #define ECS_DECLARE_COMPONENT_EXTERN(TYPE) \
     CORE_API uint32_t TYPE##_component_id; 
 
-#define registerComponent(ecs, TYPE)                                \
-    TYPE##_component_id = registerComponentImpl(ecs, #TYPE, sizeof(TYPE)); \
+#define registerComponent(TYPE)                                \
+    TYPE##_component_id = registerComponentImpl(#TYPE, sizeof(TYPE)); \
 
 #define ECS_TYPE(TYPE) TYPE##_component_id
 
-#define view(ecs, ...) \
-    viewImpl(ecs, sizeof((uint32_t[]){__VA_ARGS__}) / sizeof(uint32_t), (uint32_t[]){__VA_ARGS__})
+#define view(...) \
+    viewImpl(sizeof((uint32_t[]){__VA_ARGS__}) / sizeof(uint32_t), (uint32_t[]){__VA_ARGS__})
 
-#define getComponent(ecs, e, TYPE) \
-    ((TYPE*)getComponentImpl(ecs, e, TYPE##_component_id))
+#define getComponent(e, TYPE) \
+    ((TYPE*)getComponentImpl(e, TYPE##_component_id))
 
-#define removeComponent(ecs, e, TYPE) \
-    (removeComponentImpl(ecs, e, TYPE##_component_id))
+#define removeComponent(e, TYPE) \
+    (removeComponentImpl(e, TYPE##_component_id))
 
-#define hasComponent(ecs, e, TYPE) \
-    (hasComponentImpl(ecs, e, TYPE##_component_id))
+#define hasComponent(e, TYPE) \
+    (hasComponentImpl(e, TYPE##_component_id))
 
-#define pushComponent(ecs, e, TYPE, value_ptr) \
-    pushComponentImpl(ecs, e, TYPE##_component_id, (const void*)value_ptr)
+#define pushComponent(e, TYPE, value_ptr) \
+    pushComponentImpl(e, TYPE##_component_id, (const void*)value_ptr)
 
 
 typedef uint32_t Entity;
@@ -96,19 +96,19 @@ struct Ecs{
     size_t entitiesCount = 0;
 };
 
-CORE_API void importBaseModule(Ecs* ecs);
+CORE_API void importBaseModule();
 CORE_API Ecs* initEcs(Arena* arena);
-CORE_API Entity createEntity(Ecs* ecs);
-CORE_API size_t registerComponentImpl(Ecs* ecs, const char* name, const size_t size);
-CORE_API void pushComponentImpl(Ecs* ecs, const Entity id, const size_t componentName, const void* data);
-CORE_API bool hasComponentImpl(Ecs* ecs, const Entity entity, const size_t componentName);
-CORE_API void* getComponentImpl(Ecs* ecs, Entity entity, const size_t componentName);
-CORE_API void removeComponentImpl(Ecs* ecs, Entity entity, const size_t componentName);
-CORE_API EntityArray viewImpl(Ecs* ecs, uint32_t count, uint32_t* types);
-CORE_API void removeEntity(Ecs* ecs, const Entity entity);
-CORE_API void destroyEcs(Ecs* ecs);
-CORE_API void ecsEndFrame(Ecs* ecs);
-CORE_API void clearEcs(Ecs* ecs);
+CORE_API Entity createEntity();
+CORE_API size_t registerComponentImpl(const char* name, const size_t size);
+CORE_API void pushComponentImpl(const Entity id, const size_t componentName, const void* data);
+CORE_API bool hasComponentImpl(const Entity entity, const size_t componentName);
+CORE_API void* getComponentImpl(Entity entity, const size_t componentName);
+CORE_API void removeComponentImpl(Entity entity, const size_t componentName);
+CORE_API EntityArray viewImpl(uint32_t count, uint32_t* types);
+CORE_API void removeEntity(const Entity entity);
+CORE_API void destroyEcs();
+CORE_API void ecsEndFrame();
+CORE_API void clearEcs();
 
 extern ECS_DECLARE_COMPONENT_EXTERN(TransformComponent);
 struct TransformComponent{

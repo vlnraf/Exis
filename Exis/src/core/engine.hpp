@@ -20,7 +20,7 @@
 
 struct EngineState{
     Arena arena;
-    Ecs* ecs;
+    //Ecs* ecs;
     //UIState* uiState;
     //OrtographicCamera mainCamera;
 

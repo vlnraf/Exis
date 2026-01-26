@@ -36,7 +36,7 @@ EngineState* initEngine(uint32_t width, uint32_t height){
     LOGINFO("Renderer successfully initialized");
 
     initUI(&engine->arena);
-    engine->ecs = initEcs(&engine->arena);
+    initEcs(&engine->arena);
     LOGINFO("ECS sucessfully initialized");
     
     if(!initAudioEngine()){
@@ -48,8 +48,8 @@ EngineState* initEngine(uint32_t width, uint32_t height){
     initAnimationManager();
 
     initCollisionManager(&engine->arena);
-    importBaseModule(engine->ecs);
-    importCollisionModule(engine->ecs);
+    importBaseModule();
+    importCollisionModule();
 
     //engine->dt = 0.0f;
     //engine->fps = 0.0f;
@@ -81,7 +81,7 @@ void destroyEngine(EngineState* engine){
     destroyAudioEngine();
     //destroyTextureManager();
     destroyAnimationManager();
-    destroyEcs(engine->ecs);
+    destroyEcs();
     destroyRenderer();
     clearArena(&engine->arena);
     //destroyFontManager();

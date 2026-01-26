@@ -62,10 +62,10 @@ void updateAndRender(){
     collisionStartFrame();
     //systemUpdateTransformChildEntities(app->engine->ecs);
     //systemUpdateColliderPosition(app->engine->ecs);
-    updateCollisions(app->engine->ecs);
+    updateCollisions();
     platformGameUpdate(&app->engine->gameArena, app->engine, app->dt);
-    systemUpdateTransformChildEntities(app->engine->ecs);
-    systemUpdateColliderPosition(app->engine->ecs);
+    systemUpdateTransformChildEntities();
+    systemUpdateColliderPosition();
     collisionEndFrame();
     
 
@@ -76,11 +76,11 @@ void updateAndRender(){
         beginScene(RenderMode::NO_DEPTH);
             beginMode2D(*getActiveCamera());
                 renderGrid();
-                systemRenderColliders(app->engine->ecs);
+                systemRenderColliders();
             endMode2D();
         endScene();
     }
-    ecsEndFrame(app->engine->ecs);
+    ecsEndFrame();
 
     windowSwapBuffers(&app->window);
     app->endFrame = glfwGetTime();

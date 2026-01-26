@@ -1,12 +1,12 @@
 #include "projectx.hpp"
 
 void systemRenderSprites(Ecs* ecs, GameState* gameState){
-    EntityArray entities = view(ecs, ECS_TYPE(TransformComponent), ECS_TYPE(SpriteComponent));
+    EntityArray entities = view(ECS_TYPE(TransformComponent), ECS_TYPE(SpriteComponent));
 
     for(size_t i = 0; i < entities.count; i++){
         Entity entity = entities.entities[i];
-        TransformComponent* t= (TransformComponent*) getComponent(ecs, entity, TransformComponent);
-        SpriteComponent* s= (SpriteComponent*) getComponent(ecs, entity, SpriteComponent);
+        TransformComponent* t= (TransformComponent*) getComponent(entity, TransformComponent);
+        SpriteComponent* s= (SpriteComponent*) getComponent(entity, SpriteComponent);
         if(s->visible){
             OrtographicCamera cam = gameState->mainCamera;
             // TODO: move this check in the renderer to cull everything that is not on screen
@@ -82,6 +82,7 @@ GAME_API void gameUpdate(Arena* gameArena, EngineState* engineState, float dt){
     clearColor(0.2f, 0.3f, 0.3f, 1.0f);
     beginScene();
     renderDrawFilledRect({10,10}, {50,50}, 0, {1,0,0,1}, 1);
+    renderDrawCirclePro({100,100}, 25, {0.5,0.5}, {1,1,1,1}, 1);
     endScene();
 }
 

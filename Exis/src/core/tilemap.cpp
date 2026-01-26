@@ -143,9 +143,9 @@ TileMap LoadTilesetFromTiled(const char* filename, Ecs* ecs){
                     .rotation = {0, 0, 0}
                 };
 
-                Entity e = createEntity(ecs);
-                pushComponent(ecs, e, TransformComponent, &transform);
-                pushComponent(ecs, e, Box2DCollider, &map.tileset.tiles[tileIdx].collider);
+                Entity e = createEntity();
+                pushComponent(e, TransformComponent, &transform);
+                pushComponent(e, Box2DCollider, &map.tileset.tiles[tileIdx].collider);
             }
         }
 
