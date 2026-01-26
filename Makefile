@@ -1,8 +1,8 @@
 ifeq ($(OS),Windows_NT)
 	detected_OS := Windows
-	PLATFORM_SRC = src/platform/platformwindows.cpp
-	APPLICATION_SRC = src/platform/applicationwindows.cpp
-	WINDOW_SRC = src/platform/glfwwindow.cpp
+	PLATFORM_SRC = Exis/src/platform/platformwindows.cpp
+	APPLICATION_SRC = Exis/src/platform/applicationwindows.cpp
+	WINDOW_SRC = Exis/src/platform/glfwwindow.cpp
 	APP_NAME := application.exe
 
     CFLAGS += -DPLATFORM_WINDOWS
@@ -16,7 +16,7 @@ else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
 		APP_NAME := application
-        PLATFORM_SRC = src/platform/platformlinux.cpp
+        PLATFORM_SRC = Exis/src/platform/platformlinux.cpp
         CFLAGS += -DPLATFORM_LINUX
 		PLATFORM_LIBS = -ldl -lGL -lglfw
 		SHARED_EXT = so
@@ -28,54 +28,48 @@ endif
 
 #Compilation
 CXX = clang++ -std=c++14
-CXXFLAGS = -m64 -W -Wall -Wno-missing-field-initializers -g -O3 -D_CRT_SECURE_NO_WARNINGS $(CFLAGS) #-march=native #-fno-fast-math # da provare a inserire nel caso si hanno dei problemi con i calcoli metematici 
+CXXFLAGS = -m64 -W -Wall -Wno-missing-field-initializers -g -O0 -D_CRT_SECURE_NO_WARNINGS $(CFLAGS) #-march=native #-fno-fast-math # da provare a inserire nel caso si hanno dei problemi con i calcoli metematici 
 
 # LDFLAGS = -lgame -lshell32 -lopengl32 -lglfw3 -Xlinker /subsystem:console
-LIBS = -L external/libs/glfw -L external/libs/fmod -L external/libs/freetype
-INCLUDE :=-I external/glfw/include -I external -I src -I external/fmod/core/inc 
-INCLUDE_GAME :=-I src/game -I src -I external/ 
+LIBS = -L Exis/external/libs/glfw -L Exis/external/libs/fmod -L Exis/external/libs/freetype
+INCLUDE :=-I Exis/external/glfw/include -I Exis/external -I Exis/src -I Exis/external/fmod/core/inc 
+INCLUDE_GAME :=-I game -I Exis/src -I Exis/external/ 
 
 #Sources
 GAME_SRC = \
-	src/game/*.cpp \
+	game/*.cpp \
 
 APP_SRC = \
-	src/application/application.cpp \
-	
-#src/core/application.cpp
+	Exis/src/application/application.cpp \
 	
 
 CORE_SRC = \
-	src/core/arena.cpp \
-	src/core/engine.cpp \
-	src/core/audioengine.cpp \
-	src/core/tracelog.cpp \
-	src/core/ecs.cpp \
-	src/core/input.cpp \
-	src/core/profiler.cpp \
-	src/core/camera.cpp \
-	src/core/serialization.cpp \
-	src/core/animationmanager.cpp \
-	src/core/colliders.cpp \
-	src/core/tilemap.cpp \
-	src/core/ui.cpp \
-	src/core/mystring.cpp \
+	Exis/src/core/arena.cpp \
+	Exis/src/core/engine.cpp \
+	Exis/src/core/audioengine.cpp \
+	Exis/src/core/tracelog.cpp \
+	Exis/src/core/ecs.cpp \
+	Exis/src/core/input.cpp \
+	Exis/src/core/profiler.cpp \
+	Exis/src/core/camera.cpp \
+	Exis/src/core/serialization.cpp \
+	Exis/src/core/animationmanager.cpp \
+	Exis/src/core/colliders.cpp \
+	Exis/src/core/tilemap.cpp \
+	Exis/src/core/ui.cpp \
+	Exis/src/core/mystring.cpp \
 	$(PLATFORM_SRC) \
 	$(APPLICATION_SRC) \
 	$(WINDOW_SRC) \
 
 RENDERING_SRC = \
-	src/renderer/shader.cpp \
-	src/renderer/renderer.cpp \
-	src/renderer/texture.cpp \
-	src/renderer/fontmanager.cpp \
+	Exis/src/renderer/shader.cpp \
+	Exis/src/renderer/renderer.cpp \
+	Exis/src/renderer/texture.cpp \
+	Exis/src/renderer/fontmanager.cpp \
 
 UTILITIES_SRC = \
-	src/glad.c \
-
-
-	
-
+	Exis/src/glad.c \
 
 all: core.$(SHARED_EXT) game.$(SHARED_EXT) $(APP_NAME)
 #game: game.dll
@@ -85,26 +79,26 @@ all: core.$(SHARED_EXT) game.$(SHARED_EXT) $(APP_NAME)
 ############################
 # Compile glad.c as C
 ############################
-src/glad.o: src/glad.c
-	$(CXX) $(CXXFLAGS) -I external -c $< -o $@
+Exis/src/glad.o: Exis/src/glad.c
+	$(CXX) $(CXXFLAGS) -I Exis/external -c $< -o $@
 
 ifeq ($(OS),Windows_NT)
 copy_libs:
 	@echo "Copying required libraries..."
-	cmd /c copy /Y "external\\libs\\glfw\\glfw3.dll" .
-	cmd /c copy /Y "external\\libs\\fmod\\fmodL.dll" .
+	cmd /c copy /Y "Exis\\external\\libs\\glfw\\glfw3.dll" .
+	cmd /c copy /Y "Exis\\external\\libs\\fmod\\fmodL.dll" .
 else
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
 copy_libs:
 	@echo "Copying required libraries..."
-	cp external/libs/glfw/libglfw.so .
-	cp external/libs/fmod/libfmodL.so .
+	cp Exis/external/libs/glfw/libglfw.so .
+	cp Exis/external/libs/fmod/libfmodL.so .
 endif
 endif
 
 #NOTE: -lfmodL_vc is the debug version which print every error, just swap to -lfmod_vc for the realease build!!!
-core.$(SHARED_EXT): ${CORE_SRC} ${RENDERING_SRC} src/glad.o
+core.$(SHARED_EXT): ${CORE_SRC} ${RENDERING_SRC} Exis/src/glad.o
 	@echo "Cleaning old core.dll"
 	$(REMOVE) *.o
 	$(REMOVE) core.$(SHARED_EXT)
@@ -118,7 +112,7 @@ game.$(SHARED_EXT): ${GAME_SRC}
 	@echo "Game builded successfull"
 	
 
-$(APP_NAME): ${APP_SRC} src/glad.o
+$(APP_NAME): ${APP_SRC} Exis/src/glad.o
 	@echo "Building the application"
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LIBS) -lfreetype $^ -o $@ $(PLATFORM_LIBS) -lcore
 	$(MAKE) copy_libs
