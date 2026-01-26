@@ -34,6 +34,7 @@ enum RenderCommandType{
     RENDER_QUAD,
     RENDER_LINE,
     RENDER_TEXT,
+    RENDER_CIRCLE,
     RENDER_MAX,
 };
 
@@ -54,18 +55,21 @@ struct Renderer{
     uint32_t vao, vbo, ebo;
     uint32_t lineVao, lineVbo, lineEbo;
     uint32_t simpleVao, simpleVbo, simpleEbo;
+    uint32_t circleVao, circleVbo, circleEbo;
     uint32_t fbo, rbo; // Framebuffer and renderbuffer for render-to-texture
     Shader shader;
     Shader simpleShader;
     Shader lineShader;
+    Shader circleShader;
 
     Shader* activeShader;
 
     RenderMode mode = NORMAL;
 
     Vertex* quadVertices;
-    Vertex* simpleVertex;
+    Vertex* simpleVertices;
     Vertex* lineVertices;
+    Vertex* circleVertices;
 
     const Texture** textures;
     uint16_t textureCount = 1;
@@ -79,6 +83,7 @@ struct Renderer{
     uint32_t quadVertexCount = 0;
     uint32_t lineVertexCount = 0;
     uint32_t simpleVertexCount = 0;
+    uint32_t circleVertexCount = 0;
 
     int width, height;
 };
@@ -157,6 +162,7 @@ CORE_API void renderDrawQuad2D(glm::vec2 position, const glm::vec2 size, float r
 CORE_API void renderDrawQuadEx2D(glm::vec2 position, const glm::vec2 size, float rotation, const Texture* texture, const Rect sourceRect, glm::vec4 color = {1,1,1,1}); // Extended: atlas region + color tint
 CORE_API void renderDrawQuadPro2D(glm::vec2 position, const glm::vec2 size, float rotation, const Rect sourceRect, const glm::vec2 origin, const Texture* texture, glm::vec4 color = {1,1,1,1}); // Pro: full control with origin
 CORE_API void renderDrawText2D(Font* font, const char* text, glm::vec2 pos, float scale, glm::vec4 color = {1,1,1,1});
+CORE_API void renderDrawCirclePro(const glm::vec2 position, const float radius, const glm::vec2 origin, const glm::vec4 color, const float layer);
 
 // UI Anchor helpers (for bottom-left origin coordinate system)
 CORE_API glm::vec2 anchorTopLeft(float x, float y);

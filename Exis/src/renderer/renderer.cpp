@@ -141,6 +141,10 @@ void commandDrawQuad(const Vertex* vertices, const size_t vertCount){
     commandDraw(renderer->vao, renderer->vbo, vertices, vertCount, GL_TRIANGLES);
 }
 
+void commandDrawCircle(const Vertex* vertices, const size_t vertCount){
+    commandDraw(renderer->circleVao, renderer->circleVbo, vertices, vertCount, GL_TRIANGLES);
+}
+
 void commandDrawSimpleVertex(const Vertex* vertices, const size_t vertCount){
     commandDraw(renderer->simpleVao, renderer->simpleVbo, vertices, vertCount, GL_TRIANGLES);
 }
@@ -191,6 +195,8 @@ void initRenderer(Arena* arena, const uint32_t width, const uint32_t height){
     genVertexBuffer(&renderer->lineVbo);
     genVertexArrayObject(&renderer->simpleVao);
     genVertexBuffer(&renderer->simpleVbo);
+    genVertexArrayObject(&renderer->circleVao);
+    genVertexBuffer(&renderer->circleVbo);
     //genFrameBuffer(&renderer->fbo);
     //genRenderBuffer(&renderer->rbo);
     LOGINFO("buffer binded");
@@ -199,6 +205,7 @@ void initRenderer(Arena* arena, const uint32_t width, const uint32_t height){
     renderer->shader = loadShader(arena, "shaders/quad-shader.vs", "shaders/quad-shader.fs");
     renderer->simpleShader = loadShader(arena, "shaders/simple-shader.vs", "shaders/simple-shader.fs");
     renderer->lineShader = loadShader(arena, "shaders/line-shader.vs", "shaders/line-shader.fs");
+    renderer->circleShader = loadShader(arena, "shaders/circle-shader.vs", "shaders/circle-shader.fs");
     LOGINFO("shader binded");
     renderer->activeShader = NULL;
 
@@ -348,7 +355,8 @@ void endScene(){
 void renderStartBatch(){
     renderer->quadVertices = arenaAllocArrayZero(&renderer->frameArena, Vertex, MAX_VERTICES);
     renderer->lineVertices = arenaAllocArrayZero(&renderer->frameArena, Vertex, MAX_VERTICES_LINES);
-    renderer->simpleVertex = arenaAllocArrayZero(&renderer->frameArena, Vertex, MAX_VERTICES);
+    renderer->simpleVertices = arenaAllocArrayZero(&renderer->frameArena, Vertex, MAX_VERTICES);
+    renderer->circleVertices = arenaAllocArrayZero(&renderer->frameArena, Vertex, MAX_VERTICES);
 
     renderer->textures = arenaAllocArrayZero(&renderer->frameArena, const Texture*, MAX_TEXTURES_BIND);
     renderer->textures[0] = getTextureByName("default");
@@ -356,6 +364,7 @@ void renderStartBatch(){
     renderer->quadVertexCount = 0;
     renderer->lineVertexCount = 0;
     renderer->simpleVertexCount = 0;
+    renderer->circleVertexCount = 0;
 }
 
 void executeCommandQueue(RenderCommand* commands){
@@ -382,6 +391,10 @@ void executeCommandQueue(RenderCommand* commands){
             commandDrawSimpleVertex(commands->vertexData, commands->vertexCount);
             break;
         }
+        case RenderCommandType::RENDER_CIRCLE: {
+            commandDrawCircle(commands->vertexData, commands->vertexCount);
+            break;
+        }
     }
 }
 
@@ -399,7 +412,7 @@ void renderFlush(){
         }else{
             commandQueue.shader = &renderer->simpleShader;
         }
-        commandQueue.vertexData = renderer->simpleVertex;
+        commandQueue.vertexData = renderer->simpleVertices;
         commandQueue.vertexCount = renderer->simpleVertexCount;
         executeCommandQueue(&commandQueue);
     }
@@ -413,6 +426,17 @@ void renderFlush(){
         }
         commandQueue.vertexData = renderer->quadVertices;
         commandQueue.vertexCount = renderer->quadVertexCount;
+        executeCommandQueue(&commandQueue);
+    }
+    if(renderer->circleVertexCount){
+        commandQueue.type = RenderCommandType::RENDER_CIRCLE;
+        if(renderer->activeShader){
+            commandQueue.shader = renderer->activeShader;
+        }else{
+            commandQueue.shader = &renderer->circleShader;
+        }
+        commandQueue.vertexData = renderer->circleVertices;
+        commandQueue.vertexCount = renderer->circleVertexCount;
         executeCommandQueue(&commandQueue);
     }
     if(renderer->lineVertexCount){
@@ -715,7 +739,7 @@ void renderDrawFilledRectPro(const glm::vec2 position, const glm::vec2 size, flo
         v.texCoord = uvCoords[i];  // Provide UV coordinates for custom shaders
         v.color = color;
         v.texIndex = 0;
-        renderer->simpleVertex[renderer->simpleVertexCount++] = v;
+        renderer->simpleVertices[renderer->simpleVertexCount++] = v;
     }
 }
 
@@ -739,6 +763,46 @@ void renderDrawQuadPro2D(glm::vec2 position, const glm::vec2 size, float rotatio
     renderDrawQuadPro({position, 0}, size, {0, 0, rotation}, sourceRect, origin, texture, color, false);
 }
 
+void renderDrawCirclePro(const glm::vec2 position, const float radius, const glm::vec2 origin, const glm::vec4 color, const float layer){
+    const size_t vertSize = 6;
+
+    glm::vec4 vertexPosition[] = {
+                                    {-origin.x,        1.0f - origin.y, 0.0f, 1.0f},
+                                    {1.0f - origin.x, -origin.y,        0.0f, 1.0f},
+                                    {-origin.x,       -origin.y,        0.0f, 1.0f},
+                                    {-origin.x,        1.0f - origin.y, 0.0f, 1.0f},
+                                    {1.0f - origin.x,  1.0f - origin.y, 0.0f, 1.0f},
+                                    {1.0f - origin.x, -origin.y,        0.0f, 1.0f}
+                                };
+
+    // UV coordinates for each vertex (0,0 at top-left, 1,1 at bottom-right)
+    glm::vec2 uvCoords[] = {
+                                {0.0f, 1.0f},  // Top-left
+                                {1.0f, 0.0f},  // Bottom-right
+                                {0.0f, 0.0f},  // Bottom-left
+                                {0.0f, 1.0f},  // Top-left
+                                {1.0f, 1.0f},  // Top-right
+                                {1.0f, 0.0f}   // Bottom-right
+                            };
+
+    glm::mat4 model = glm::mat4(1.0f);
+
+    model = glm::translate(model, glm::vec3(position, layer));
+
+    glm::vec3 modelCenter(radius, radius, 0.0f);
+
+    model = glm::scale(model, glm::vec3(radius * 2, radius * 2, 1.0f));
+
+    for(size_t i = 0; i < vertSize; i++){
+        Vertex v = {};
+        v.pos = model * vertexPosition[i];
+        v.texCoord = uvCoords[i];  // Provide UV coordinates for custom shaders
+        v.color = color;
+        v.texIndex = 0;
+        renderer->circleVertices[renderer->circleVertexCount++] = v;
+    }
+}
+
 void destroyRenderer(){
     // Clean up memory arenas
     clearArena(&renderer->frameArena);
@@ -747,6 +811,10 @@ void destroyRenderer(){
     // Delete quad rendering resources
     deleteVertexArrayObject(renderer->vao);
     deleteVertexBuffer(renderer->vbo);
+
+    // Delete circle rendering resources
+    deleteVertexArrayObject(renderer->circleVao);
+    deleteVertexBuffer(renderer->circleVbo);
 
     // Delete line rendering resources
     deleteVertexArrayObject(renderer->lineVao);
