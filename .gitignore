@@ -22,7 +22,7 @@
 !external/libs/**/*.dll
 !external/libs/**/*.lib
 !external/libs/**/*.a
-!external/libs/
+!external/libs
 
 # ===== Submodules and External Dependencies =====
 # Keep everything inside external/ (like glfw, fmod headers, etc.)
