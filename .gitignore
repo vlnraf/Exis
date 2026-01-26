@@ -9,6 +9,13 @@
 *.gch
 *.pch
 
+# ===== Allow prebuilt third-party binaries =====
+!external/libs/**/*.dll
+!external/libs/**/*.lib
+!external/libs/**/*.a
+!external/libs
+!external/**
+
 # ===== Libraries =====
 *.so
 *.dylib
@@ -18,15 +25,8 @@
 *.lai
 *.la
 
-# ===== Allow prebuilt third-party binaries =====
-!external/libs/**/*.dll
-!external/libs/**/*.lib
-!external/libs/**/*.a
-!external/libs
-
 # ===== Submodules and External Dependencies =====
 # Keep everything inside external/ (like glfw, fmod headers, etc.)
-!external/**
 
 # ===== Executables =====
 *.exe
