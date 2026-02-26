@@ -43,6 +43,10 @@ void registerGamepadInput(Input* input){
 
 void updateAndRender(){
     app->startFrame = glfwGetTime();
+    //TODO: think a better logic for the first iteration not having dt = 0
+    //if(app->dt == 0){
+    //    app->dt = 0.016;
+    //}
 
     windowPollEvents();
 
@@ -63,7 +67,7 @@ void updateAndRender(){
     //systemUpdateTransformChildEntities(app->engine->ecs);
     //systemUpdateColliderPosition(app->engine->ecs);
     updateCollisions();
-    platformGameUpdate(&app->engine->gameArena, app->engine, app->dt);
+    platformGameUpdate(&app->engine->gameArena, app->dt);
     systemUpdateTransformChildEntities();
     systemUpdateColliderPosition();
     collisionEndFrame();
@@ -110,7 +114,8 @@ ApplicationState initApplication(const char* name, int width, int height){
 
     platformLoadGame(srcGameName);
 
-    platformGameStart(&app.engine->gameArena, app.engine);
+    platformGameStart(&app.engine->gameArena);
+    app.dt = 0.016;
     app.lastFrame = glfwGetTime();
     app.quit = false;
     return app;
@@ -121,7 +126,7 @@ void applicationRun(){
     if(app->reload){
         //NOTE: Comment if you need to not reset the state of the game
         //app->engine->gameState = platformGameStart(app->engine);
-        platformGameStart(&app->engine->gameArena, app->engine);
+        platformGameStart(&app->engine->gameArena);
         app->reload = false;
     }
     updateAndRender();
@@ -129,7 +134,7 @@ void applicationRun(){
 
 void applicationShutDown(){
     LOGINFO("Closing application");
-    platformGameStop(&app->engine->gameArena, app->engine);
+    platformGameStop(&app->engine->gameArena);
     platformUnloadGame();  // Unload game DLL before destroying engine
     destroyEngine(app->engine);  // Clean up audio, renderer, and other resources
     glfwTerminate();
