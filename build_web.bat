@@ -14,7 +14,6 @@ emcc -std=c++14 -O2 ^
   -I./external/glm ^
   src/application/application.cpp ^
   src/core/arena.cpp ^
-  src/core/audioengineweb.cpp ^
   src/core/camera.cpp ^
   src/core/ecs.cpp ^
   src/core/engine.cpp ^

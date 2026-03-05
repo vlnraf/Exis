@@ -72,10 +72,6 @@ void updateAndRender(){
     systemUpdateColliderPosition();
     collisionEndFrame();
     
-
-    //Audio update
-    updateAudio();
-
     if(app->debugMode){
         beginScene(RenderMode::NO_DEPTH);
             beginMode2D(*getActiveCamera());
